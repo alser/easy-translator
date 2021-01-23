@@ -1,0 +1,8 @@
+*.csproj.user
+*.DotSettings.user
+*.suo
+**/.idea/*
+**/.vs/*
+**/.vscode/*
+**/bin/*
+**/obj/*

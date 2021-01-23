@@ -1,0 +1,35 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30804.86
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EasyTranslator.Android", "EasyTranslator\EasyTranslator.Android\EasyTranslator.Android.csproj", "{80C0517F-5E8F-40C8-8D2C-5075E18E7DBC}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EasyTranslator", "EasyTranslator\EasyTranslator\EasyTranslator.csproj", "{37F5DBCE-4032-4F9A-8781-A2B32DD49796}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{80C0517F-5E8F-40C8-8D2C-5075E18E7DBC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{80C0517F-5E8F-40C8-8D2C-5075E18E7DBC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{80C0517F-5E8F-40C8-8D2C-5075E18E7DBC}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
+		{80C0517F-5E8F-40C8-8D2C-5075E18E7DBC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{80C0517F-5E8F-40C8-8D2C-5075E18E7DBC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{80C0517F-5E8F-40C8-8D2C-5075E18E7DBC}.Release|Any CPU.Deploy.0 = Release|Any CPU
+		{37F5DBCE-4032-4F9A-8781-A2B32DD49796}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{37F5DBCE-4032-4F9A-8781-A2B32DD49796}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{37F5DBCE-4032-4F9A-8781-A2B32DD49796}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
+		{37F5DBCE-4032-4F9A-8781-A2B32DD49796}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{37F5DBCE-4032-4F9A-8781-A2B32DD49796}.Release|Any CPU.Build.0 = Release|Any CPU
+		{37F5DBCE-4032-4F9A-8781-A2B32DD49796}.Release|Any CPU.Deploy.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {EF380723-336A-4676-BF3F-3BEAB3A08D26}
+	EndGlobalSection
+EndGlobal
