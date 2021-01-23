@@ -1,6 +1,7 @@
 *.csproj.user
 *.DotSettings.user
 *.suo
+*.pubxml.user
 **/.idea/*
 **/.vs/*
 **/.vscode/*
