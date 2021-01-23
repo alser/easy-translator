@@ -1,4 +1,4 @@
-# easy-translator
+# Easy Translator
 
-1. Visual Studio 2019 16.8 или старше, подходит Community Edition
-2. При установке должна быть выбрана фича "Mobile Development with .NET"
+1. Visual Studio 2019 v16.8 or greater, Community Edition will suffice
+2. When installing Visual Studio, select feature "Mobile Development with .NET"
