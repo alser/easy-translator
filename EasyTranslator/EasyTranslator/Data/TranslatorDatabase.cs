@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using EasyTranslator.Models;
 using SQLite;
@@ -27,9 +28,23 @@ namespace EasyTranslator.Data
             this.database.Table<Record>()
                 .Where(x => x.SourceText == searchText)
                 .ToListAsync();
+        
+        public Task<List<Record>> SearchRecordsStartsWithAndNotExactAsync(string searchText) =>
+            this.database.Table<Record>()
+                .Where(x => x.SourceText.StartsWith(searchText) && x.SourceText != searchText)
+                .Take(100)
+                .ToListAsync();
+
+        public Task<List<Record>> SearchRecordsContainsAndNotExactAsync(string searchText) =>
+            this.database.Table<Record>()
+                .Where(x => x.SourceText.Contains(searchText) && !x.SourceText.StartsWith(searchText))
+                .Take(100)
+                .ToListAsync();
 
         public Task InsertRecordsAsync(IEnumerable<Record> records) => this.database.InsertAllAsync(records, typeof(Record));
 
         public Task DeleteAllRecordsAsync() => this.database.DeleteAllAsync<Record>();
+
+        public async Task<bool> IsEmptyAsync() => await this.database.Table<Record>().CountAsync() == 0;
     }
 }

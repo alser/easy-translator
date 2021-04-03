@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using CsvHelper;
@@ -17,33 +18,29 @@ namespace EasyTranslator
 {
     public partial class MainPage
     {
-        public MainPage()
-        {
-            this.InitializeComponent();
-        }
+        #region Constructors
 
-        private async void LoadFromFile_OnClicked(object sender, EventArgs e)
+        public MainPage() => this.InitializeComponent();
+
+        #endregion
+
+        #region Fields
+
+        private bool skipEmptyDatabaseCheck;
+
+        #endregion
+
+        #region Private Methods
+
+        private async Task LoadFileAsync(byte[] content)
         {
             string[] lastProcessedWordClosure = { null };
 
             try
             {
-                FileData fileData = await CrossFilePicker.Current.PickFile();
-                if (fileData is null)
-                {
-                    return;
-                }
-
-                string fileName = fileData.FileName;
-                if (!fileName.EndsWith(".csv", StringComparison.OrdinalIgnoreCase))
-                {
-                    this.ResultsLabel.Text = "Ошибка: выберите файл с расширением .csv";
-                    return;
-                }
-
                 this.ResultsLabel.Text = "Пожалуйста, подождите";
 
-                await this.ProcessContentsAsync(fileData.DataArray, lastProcessedWordClosure);
+                await this.ProcessContentsAsync(content, lastProcessedWordClosure);
 
                 this.ResultsLabel.Text = "Файл успешно загружен";
             }
@@ -56,6 +53,7 @@ namespace EasyTranslator
                 this.ResultsLabel.Text = prefix + ex;
             }
         }
+
 
         private async Task ProcessContentsAsync(byte[] data, string[] lastProcessedWordClosure)
         {
@@ -115,8 +113,73 @@ namespace EasyTranslator
         }
 
 
+        private async Task ResetDatabaseAsync()
+        {
+            try
+            {
+                byte[] bytes;
+                {
+                    await using Stream stream = Assembly.GetExecutingAssembly()
+                        .GetManifestResourceStream(typeof(MainPage), "data.csv");
+
+                    bytes = new byte[stream.Length];
+
+                    await using Stream memoryStream = new MemoryStream(bytes);
+                    await stream.CopyToAsync(memoryStream);
+                }
+
+                await this.LoadFileAsync(bytes);
+            }
+            catch (Exception ex)
+            {
+                this.ResultsLabel.Text = "Ошибка: " + ex;
+            }
+        }
+
+        #endregion
+
+        #region Event Handlers
+
+        private async void LoadFromFile_OnClicked(object sender, EventArgs e)
+        {
+            try
+            {
+                FileData fileData = await CrossFilePicker.Current.PickFile();
+                if (fileData is null)
+                {
+                    return;
+                }
+
+                string fileName = fileData.FileName;
+                if (!fileName.EndsWith(".csv", StringComparison.OrdinalIgnoreCase))
+                {
+                    this.ResultsLabel.Text = "Ошибка: выберите файл с расширением .csv";
+                    return;
+                }
+
+                await this.LoadFileAsync(fileData.DataArray);
+            }
+            catch (Exception ex)
+            {
+                this.ResultsLabel.Text = "Ошибка: " + ex;
+            }
+        }
+
+        private async void ResetDatabase_OnClicked(object sender, EventArgs e) => await this.ResetDatabaseAsync();
+
+
         private async void SearchBar_OnSearchButtonPressed(object sender, EventArgs e)
         {
+            if (!this.skipEmptyDatabaseCheck)
+            {
+                if (await App.Database.IsEmptyAsync())
+                {
+                    await this.ResetDatabaseAsync();
+                }
+
+                this.skipEmptyDatabaseCheck = true;
+            }
+
             this.ResultsLabel.Text = string.Empty;
 
             string text = this.SearchBar.Text?.Trim().ToLowerInvariant();
@@ -127,14 +190,61 @@ namespace EasyTranslator
 
             TranslatorDatabase database = App.Database;
 
-            List<Record> records = await database.SearchRecordsAsync(text);
-            if (records.Count == 0)
+            List<Language> languages = await database.GetLanguagesAsync();
+            List<Record> exactRecords = await database.SearchRecordsAsync(text);
+            List<Record> startsWithRecords = text.Length > 1 ? await database.SearchRecordsStartsWithAndNotExactAsync(text) : new List<Record>();
+            List<Record> approximateRecords = text.Length > 2 ? await database.SearchRecordsContainsAndNotExactAsync(text) : new List<Record>();
+
+            var formattedText = new FormattedString();
+            if (exactRecords.Count == 0 && startsWithRecords.Count == 0 && approximateRecords.Count == 0)
             {
                 this.ResultsLabel.Text = "не найдено";
                 return;
             }
 
-            List<Language> languages = await database.GetLanguagesAsync();
+            if (exactRecords.Count > 0)
+            {
+                formattedText.Spans.Add(
+                    new Span
+                    {
+                        Text = text,
+                        FontSize = 22.0
+                    });
+
+                AddWordTranslations(formattedText, exactRecords, languages);
+            }
+
+            AddGroupTranslations(formattedText, startsWithRecords, languages);
+            AddGroupTranslations(formattedText, approximateRecords, languages);
+
+            this.ResultsLabel.FormattedText = formattedText;
+        }
+
+
+        private static void AddGroupTranslations(FormattedString formattedText, IEnumerable<Record> records, IReadOnlyCollection<Language> languages)
+        {
+            foreach (IGrouping<string, Record> grouping in records.OrderBy(x => x.SourceText).GroupBy(x => x.SourceText))
+            {
+                if (formattedText.Spans.Count > 0)
+                {
+                    formattedText.Spans.Add(
+                        new Span { Text = Environment.NewLine + Environment.NewLine + Environment.NewLine, FontSize = 22.0 });
+                }
+
+                formattedText.Spans.Add(
+                    new Span
+                    {
+                        Text = grouping.Key,
+                        FontSize = 22.0
+                    });
+
+                AddWordTranslations(formattedText, grouping, languages);
+            }
+        }
+
+
+        private static void AddWordTranslations(FormattedString formattedText, IEnumerable<Record> records, IReadOnlyCollection<Language> languages)
+        {
             (string language, string value)[] results = records
                 .Select(x => (language: languages.First(y => y.Id == x.TargetLanguageId).Name, value: x.Value?.Trim()))
                 .Where(x => !string.IsNullOrEmpty(x.value))
@@ -142,8 +252,6 @@ namespace EasyTranslator
                 .OrderBy(x => x.language)
                 .ThenBy(x => x.value)
                 .ToArray();
-
-            var formattedText = new FormattedString();
 
             string prevLanguage = null;
             foreach ((string language, string value) in results)
@@ -170,8 +278,6 @@ namespace EasyTranslator
 
                 prevLanguage = language;
             }
-
-            this.ResultsLabel.FormattedText = formattedText;
         }
 
 
@@ -182,5 +288,7 @@ namespace EasyTranslator
                 this.ResultsLabel.Text = string.Empty;
             }
         }
+
+        #endregion
     }
 }
