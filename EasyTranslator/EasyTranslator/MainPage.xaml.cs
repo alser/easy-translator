@@ -136,6 +136,30 @@ namespace EasyTranslator
             }
         }
 
+
+        private void AddDeveloperToolbar()
+        {
+            var loadFromFile = new ToolbarItem { Text = "Загрузить из файла", Priority = 0, Order = ToolbarItemOrder.Secondary };
+            loadFromFile.Clicked += this.LoadFromFile_OnClicked;
+            if (this.ToolbarItems.All(x => x.Text != loadFromFile.Text))
+            {
+                this.ToolbarItems.Add(loadFromFile);
+            }
+
+            var defaultDatabase = new ToolbarItem { Text = "База по умолчанию", Priority = 1, Order = ToolbarItemOrder.Secondary };
+            loadFromFile.Clicked += this.ResetDatabase_OnClicked;
+            if (this.ToolbarItems.All(x => x.Text != defaultDatabase.Text))
+            {
+                this.ToolbarItems.Add(defaultDatabase);
+            }
+        }
+
+
+        private void RemoveDeveloperToolbar()
+        {
+            this.ToolbarItems.Clear();
+        }
+
         #endregion
 
         #region Event Handlers
@@ -186,6 +210,19 @@ namespace EasyTranslator
             if (string.IsNullOrEmpty(text))
             {
                 return;
+            }
+
+            switch (text)
+            {
+                case "show developer tools":
+                    this.AddDeveloperToolbar();
+                    this.ResultsLabel.Text = "Тулбар добавлен." + Environment.NewLine + Environment.NewLine + "Введите \"hide developer tools\", чтобы скрыть.";
+                    return;
+
+                case "hide developer tools":
+                    this.RemoveDeveloperToolbar();
+                    this.ResultsLabel.Text = "Тулбар скрыт." + Environment.NewLine + Environment.NewLine + "Введите \"show developer tools\", чтобы показать.";
+                    return;
             }
 
             TranslatorDatabase database = App.Database;
@@ -259,22 +296,22 @@ namespace EasyTranslator
                 if (formattedText.Spans.Count > 0)
                 {
                     formattedText.Spans.Add(
-                        new Span { Text = Environment.NewLine + Environment.NewLine, FontSize = 20.0 });
+                        new Span { Text = Environment.NewLine, FontSize = 18.0 });
                 }
 
                 if (language != prevLanguage)
                 {
-                    formattedText.Spans.Add(
-                        new Span
-                        {
-                            Text = language + Environment.NewLine,
-                            FontAttributes = FontAttributes.Bold,
-                            FontSize = 16.0
-                        });
+                    //formattedText.Spans.Add(
+                    //    new Span
+                    //    {
+                    //        Text = language + Environment.NewLine,
+                    //        FontAttributes = FontAttributes.Bold,
+                    //        FontSize = 16.0
+                    //    });
                 }
 
                 formattedText.Spans.Add(
-                    new Span { Text = value, FontSize = 20.0 });
+                    new Span { Text = value, FontSize = 18.0 });
 
                 prevLanguage = language;
             }

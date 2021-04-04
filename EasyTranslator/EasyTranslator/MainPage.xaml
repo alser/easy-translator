@@ -4,17 +4,6 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              Title="Easy Translator">
 
-    <ContentPage.ToolbarItems>
-        <ToolbarItem Clicked="LoadFromFile_OnClicked"
-                     Order="Secondary"
-                     Priority="0"
-                     Text="Загрузить из файла" />
-        <ToolbarItem Clicked="ResetDatabase_OnClicked"
-                     Order="Secondary"
-                     Priority="1"
-                     Text="База по умолчанию" />
-    </ContentPage.ToolbarItems>
-
     <Grid Margin="0,10,0,0">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />

@@ -32,13 +32,13 @@ namespace EasyTranslator.Data
         public Task<List<Record>> SearchRecordsStartsWithAndNotExactAsync(string searchText) =>
             this.database.Table<Record>()
                 .Where(x => x.SourceText.StartsWith(searchText) && x.SourceText != searchText)
-                .Take(100)
+                .Take(50)
                 .ToListAsync();
 
         public Task<List<Record>> SearchRecordsContainsAndNotExactAsync(string searchText) =>
             this.database.Table<Record>()
                 .Where(x => x.SourceText.Contains(searchText) && !x.SourceText.StartsWith(searchText))
-                .Take(100)
+                .Take(50)
                 .ToListAsync();
 
         public Task InsertRecordsAsync(IEnumerable<Record> records) => this.database.InsertAllAsync(records, typeof(Record));
