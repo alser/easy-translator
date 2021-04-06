@@ -40,7 +40,9 @@ namespace EasyTranslator
             {
                 this.ResultsLabel.Text = "Пожалуйста, подождите";
 
-                await this.ProcessContentsAsync(content, lastProcessedWordClosure);
+                await DeleteAllRecords();
+                await this.ProcessContentsAsync(content, lastProcessedWordClosure, firstLanguage: true);
+                await this.ProcessContentsAsync(content, lastProcessedWordClosure, firstLanguage: false);
 
                 this.ResultsLabel.Text = "Файл успешно загружен";
             }
@@ -55,7 +57,16 @@ namespace EasyTranslator
         }
 
 
-        private async Task ProcessContentsAsync(byte[] data, string[] lastProcessedWordClosure)
+        private static async Task DeleteAllRecords()
+        {
+            TranslatorDatabase database = App.Database;
+
+            await database.DeleteAllLanguagesAsync();
+            await database.DeleteAllRecordsAsync();
+        }
+
+
+        private async Task ProcessContentsAsync(byte[] data, string[] lastProcessedWordClosure, bool firstLanguage)
         {
             using var streamReader = new StreamReader(new MemoryStream(data), Encoding.UTF8, true);
             using var csvReader = new CsvReader(streamReader,
@@ -84,7 +95,7 @@ namespace EasyTranslator
 
             while (await csvReader.ReadAsync())
             {
-                string sourceText = csvReader.GetField(0)?.Trim().ToLowerInvariant();
+                string sourceText = csvReader.GetField(firstLanguage ? 0 : 1)?.Trim().ToLowerInvariant();
                 if (string.IsNullOrEmpty(sourceText))
                 {
                     continue;
@@ -92,23 +103,46 @@ namespace EasyTranslator
 
                 lastProcessedWordClosure[0] = sourceText;
 
-                for (int i = 1; i < count; i++)
+                if (firstLanguage)
                 {
-                    records.Add(new Record
+                    // с первого языка на второй, третий и т.п.
+                    for (int i = 1; i < count; i++)
                     {
-                        SourceText = sourceText,
-                        TargetLanguageId = i,
-                        Value = csvReader.GetField(i),
-                    });
+                        records.Add(new Record
+                        {
+                            SourceText = sourceText,
+                            TargetLanguageId = i,
+                            Value = csvReader.GetField(i),
+                        });
+                    }
+                }
+                else
+                {
+                    // со второго языка на первый, третий и т.п.
+                    for (int i = 0; i < count; i++)
+                    {
+                        if (i == 1)
+                        {
+                            continue;
+                        }
+
+                        records.Add(new Record
+                        {
+                            SourceText = sourceText,
+                            TargetLanguageId = i,
+                            Value = csvReader.GetField(i),
+                        });
+                    }
                 }
             }
 
             TranslatorDatabase database = App.Database;
 
-            await database.DeleteAllLanguagesAsync();
-            await database.DeleteAllRecordsAsync();
+            if (firstLanguage)
+            {
+                await database.InsertLanguagesAsync(languages);
+            }
 
-            await database.InsertLanguagesAsync(languages);
             await database.InsertRecordsAsync(records);
         }
 
@@ -147,7 +181,7 @@ namespace EasyTranslator
             }
 
             var defaultDatabase = new ToolbarItem { Text = "База по умолчанию", Priority = 1, Order = ToolbarItemOrder.Secondary };
-            loadFromFile.Clicked += this.ResetDatabase_OnClicked;
+            defaultDatabase.Clicked += this.ResetDatabase_OnClicked;
             if (this.ToolbarItems.All(x => x.Text != defaultDatabase.Text))
             {
                 this.ToolbarItems.Add(defaultDatabase);
