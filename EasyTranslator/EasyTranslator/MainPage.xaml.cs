@@ -12,6 +12,7 @@ using EasyTranslator.Data;
 using EasyTranslator.Models;
 using Plugin.FilePicker;
 using Plugin.FilePicker.Abstractions;
+using Xamarin.Essentials;
 using Xamarin.Forms;
 
 namespace EasyTranslator
@@ -20,7 +21,15 @@ namespace EasyTranslator
     {
         #region Constructors
 
-        public MainPage() => this.InitializeComponent();
+        public MainPage()
+        {
+            this.InitializeComponent();
+
+            if (AppInfo.RequestedTheme == AppTheme.Dark)
+            {
+                this.SearchBar.TextColor = Color.WhiteSmoke;
+            }
+        }
 
         #endregion
 

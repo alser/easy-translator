@@ -2,7 +2,7 @@
 <ContentPage x:Class="EasyTranslator.MainPage"
              xmlns="http://xamarin.com/schemas/2014/forms"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             Title="Easy Translator">
+             Title="NS Arabic translator">
 
     <Grid Margin="0,10,0,0">
         <Grid.RowDefinitions>
